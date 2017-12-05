@@ -1,0 +1,85 @@
+%%
+
+% Crop to whatever size the form is
+n_crop  = 463;
+m_crop  = 1263;
+oneRow = 463*1263;
+crop_dim = [4.5 856.5 1262 462]
+A = imread('handwritten_im.jpg');
+A = rgb2gray(A);
+
+J = imcrop(A);
+
+%%
+n_crop  = 463;
+m_crop  = 1263;
+oneRow = 463*1263;
+
+A = imread('handwritten_im/name.jpg');
+%%
+K = imresize(K,[n_crop m_crop]);
+
+
+% imshow(K);
+
+imwrite(K,'handwritten_name.jpg');
+%% ADD handwritten part to all same images
+
+HW = imread('/Users/lipivora/Documents/sem2/special problem/code/handwritten_im/handwritten_name.jpg');
+oneRow = 463*1263;
+num_images = 20;
+% i = 1;
+for i = 1:num_images
+    
+    str = sprintf('im%d.jpg',i);
+    filename =strcat('/Users/lipivora/Documents/sem2/special problem/code/data_processed/normalized_images/crop/',str); 
+    I = imread(filename);
+    
+    % Adding 2 images -> handwritten + original form:
+    C = imfuse(I,HW,'blend');
+% imshow(C)
+% increasing the darkness of gray pixels:
+D = C>170;
+B = uint8(D);
+G = B .* C;
+ imshow(G)
+    K = im2double(G);
+    filename1 =strcat('/Users/lipivora/Documents/sem2/special problem/code/data_processed/handwritten/',str); 
+
+%     Write them in a data_matrix
+    imwrite(K,filename);
+    A  = reshape(K',[1 oneRow]);
+    data_matrix(i,:) = A;
+end 
+    
+%%
+save('data_weights/data_mat_handwritten_name','data_matrix')
+
+
+%% Add handwritten part 
+
+HW = imread('handwritten2.jpg');
+oneRow = 463*1263;
+num_images = 20;
+% i = 1;
+for i = 1:num_images
+    
+    str = sprintf('im%d.jpg',i);
+    filename =strcat('/Users/lipivora/Documents/sem2/special problem/code/data_processed/normalized_images/crop/',str); 
+    I = imread(filename);
+    
+    % Adding 2 images -> handwritten + original form:
+    C = imfuse(I,HW,'blend');
+
+% increasing the darkness of gray pixels:
+D = C>170;
+B = uint8(D);
+G = B .* C;
+imshow(G)
+    K = im2double(G);
+     imwrite(G,strcat('/Users/lipivora/Documents/sem2/special problem/code/data_processed/hw_form',str));
+%     Write them in a data_matrix
+    
+    A  = reshape(K',[1 oneRow]);
+    data_matrix(i,:) = A;
+end 

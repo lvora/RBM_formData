@@ -1,0 +1,107 @@
+%% Clean up
+
+clear ;
+close all;
+
+%% Load data
+
+load data_weights/data_cropped;
+data1 = data_matrix;
+%% Adding to path:
+
+addpath(genpath('MyCode'))
+addpath(genpath('RBMLIB'));
+
+%% Train on clean forms and save model
+num_hidden = 50;
+num_epochs = 70;
+m2= rbmBB(data_matrix,num_hidden,'maxepoch',num_epochs,'verbose',true);
+%% SAVE model
+% 
+% save('data_weights/model_50hid_crop_70epo','m2');
+%% Load the model and reconstruct on handwritten forms:
+% load data_weights/model_50hid_crop_70epo;
+% load model_20hid_crop;
+%%
+load data_weights/data_mat_handwritten_name;
+up = rbmVtoH(m2, data_matrix);
+down= rbmHtoV(m2, up);
+
+%% Visualize weights
+visualize_weight(m2.W);
+%% Visualize reconstructed data
+visualize_weight(down');
+%% Difference
+
+A = imsubtract(data_matrix,down);
+visualize_weight(A');
+
+%% Apply a threshold to get a better extraction of handwritten input
+thresh = -0.96;
+handwritten_min = (A>thresh);
+visualize_weight(handwritten_min');
+%% write the extracted fields
+for i = 1:20;
+
+    str = sprintf('im%d.jpg',i);
+    filename =strcat('data_results/hand_extract/',str);
+    A = handwritten_min(i,:);
+    J = reshape(A,[m_crop n_crop])';
+    imwrite(J,filename);
+
+end
+%% Second layer of RBM on handwritten stuff
+% TRAINING on extracted handwritten:
+
+num_hidden = 50;
+m2= rbmBB(A,num_hidden,'maxepoch',70,'verbose',true);
+
+%% See weights:
+
+visualize_weight(m2.W);
+%% Reconstruction: using data matrix that has handwritten plus form
+
+
+visualize_weight(data_matrix');
+%%
+up = rbmVtoH(m2, data_matrix);
+down= rbmHtoV(m2, up);
+visualize_weight(down');
+%% Reconstruction: using data matrix that has handwritten noisy
+
+
+% visualize_weight(handwritten_min');
+up = rbmVtoH(m2, handwritten_min);
+down= rbmHtoV(m2, up);
+visualize_weight(down');
+%%
+
+Kaverage = filter2(fspecial('average',3),down)/255;
+% visualize_weight(Kaverage');
+C = Kaverage>0.0010;
+visualize_weight((~C)');
+
+%%
+B = ((data_matrix - down));
+visualize_weight(B');
+
+%%
+C = down>0.40;
+visualize_weight(~C');
+%%
+handwritten_min3 = (B>-0.3);
+visualize_weight(handwritten_min3');
+%%
+threshold = 0.45;
+
+% visualize_weight(down');
+handwritten_min2 = (down(4,:)>threshold);
+
+visualize_weight(handwritten_min2');
+
+%%
+C = handwritten_min - down;
+ji = (C==1);
+
+%%
+visualize_weight((C~=1)');
